@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import {
-  TapGestureHandler,
-  State,
-  GestureHandlerRootView
-} from 'react-native-gesture-handler';
+  View,
+  Text,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Keyboard
+} from 'react-native';
+import { State } from 'react-native-gesture-handler';
 import Voice from '@react-native-voice/voice';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import BottomBar from '../../components/BottomBar';
+import Microphone from '../../components/Microphone';
+import TopBar from '../../components/TopBar';
+import LanguagesBar from '../../components/LanguagesBar';
+import { Spacer } from '../../components/Spacer/Spacer';
+import TextArea from '../../components/TextArea';
+import colors from '../../values/colors';
+import { textToBinary } from '../../utils/ConvertText';
 
 export default function App() {
   const [isRecording, setIsRecording] = useState(false);
-  const [recognizedText, setRecognizedText] = useState<String>('');
+  const [recognizedText, setRecognizedText] = useState<string>('');
 
   useEffect(() => {
     Voice.onSpeechResults = e => {
@@ -50,48 +59,40 @@ export default function App() {
     }
   };
 
-  const changeText = (text: String) => {
+  const changeText = (text: string) => {
     setRecognizedText(text);
     stopRecording();
   };
-
-  const textToBinary = (text: String) => {
-    let binaryText = '';
-    for (let i = 0; i < text.length; i++) {
-      const char = text.charCodeAt(i).toString(2);
-      binaryText += '0'.repeat(8 - char.length) + char + ' ';
-    }
-    return binaryText.trim();
-  };
-
   return (
-    <GestureHandlerRootView>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
-        <TapGestureHandler
-          onHandlerStateChange={handleButtonStateChange}
-          maxDist={10}
-        >
-          <View
-            style={[
-              styles.roundButton,
-              { backgroundColor: isRecording ? 'red' : 'blue' }
-            ]}
-          >
-            <FontAwesome5
-              name='microphone'
-              size={42}
-              color={isRecording ? 'black' : 'white'}
-            />
-          </View>
-        </TapGestureHandler>
-        <Text style={{ marginTop: 20 }}>Texto:</Text>
-        <Text style={{ fontSize: 16 }}>{recognizedText}</Text>
-        <View style={{ marginTop: 20 }}>
-          <Text style={{ textAlign: 'center' }}>Binário:</Text>
-          <Text style={{ margin: 16 }}>{textToBinary(recognizedText)}</Text>
-        </View>
+        <TopBar />
+        <Spacer height={26} />
+        <LanguagesBar />
+        <Spacer height={12} />
+        <TextArea
+          text={recognizedText}
+          handleTextChange={text => {
+            setRecognizedText(text);
+          }}
+          copyPressed={() => {}}
+        />
+        <Spacer height={12} />
+        <TextArea
+          text={textToBinary(recognizedText)}
+          handleTextChange={() => {}}
+          copyPressed={() => {}}
+          editable={false}
+          background={colors.gray}
+        />
+        <BottomBar>
+          <Microphone
+            handleMicrophonePress={handleButtonStateChange}
+            isRecording={isRecording}
+          />
+        </BottomBar>
       </View>
-    </GestureHandlerRootView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -105,9 +106,8 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center'
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#FAFAFA'
   }
 });
